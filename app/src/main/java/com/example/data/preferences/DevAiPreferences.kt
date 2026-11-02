@@ -22,6 +22,53 @@ class DevAiPreferences(context: Context) {
         private const val KEY_DARK_MODE = "dark_mode_enabled"
         private const val KEY_SELECTED_VOICE_NAME = "selected_voice_name"
         private const val KEY_SELECTED_VOICE_LOCALE = "selected_voice_locale"
+        private const val KEY_WAKE_WORD_ENABLED = "wake_word_enabled"
+        private const val KEY_WAKE_WORD_PHRASE = "wake_word_phrase"
+        private const val KEY_WAKE_WORD_SENSITIVITY = "wake_word_sensitivity"
+        private const val KEY_APP_LOCK_ENABLED = "app_lock_enabled"
+        private const val KEY_LOCKED_PACKAGES = "locked_packages"
+        private const val KEY_BIOMETRIC_VAULT_ENABLED = "biometric_vault_enabled"
+    }
+
+    var wakeWordEnabled: Boolean
+        get() = prefs.getBoolean(KEY_WAKE_WORD_ENABLED, false)
+        set(value) = prefs.edit().putBoolean(KEY_WAKE_WORD_ENABLED, value).apply()
+
+    var wakeWordPhrase: String
+        get() = prefs.getString(KEY_WAKE_WORD_PHRASE, "Hey Dev") ?: "Hey Dev"
+        set(value) = prefs.edit().putString(KEY_WAKE_WORD_PHRASE, value.trim().ifEmpty { "Hey Dev" }).apply()
+
+    var wakeWordSensitivity: String
+        get() = prefs.getString(KEY_WAKE_WORD_SENSITIVITY, "medium") ?: "medium"
+        set(value) = prefs.edit().putString(KEY_WAKE_WORD_SENSITIVITY, value).apply()
+
+    var appLockEnabled: Boolean
+        get() = prefs.getBoolean(KEY_APP_LOCK_ENABLED, false)
+        set(value) = prefs.edit().putBoolean(KEY_APP_LOCK_ENABLED, value).apply()
+
+    var biometricVaultEnabled: Boolean
+        get() = prefs.getBoolean(KEY_BIOMETRIC_VAULT_ENABLED, false)
+        set(value) = prefs.edit().putBoolean(KEY_BIOMETRIC_VAULT_ENABLED, value).apply()
+
+    fun getLockedPackages(): Set<String> {
+        return prefs.getStringSet(KEY_LOCKED_PACKAGES, emptySet()) ?: emptySet()
+    }
+
+    fun addLockedPackage(packageName: String) {
+        val current = getLockedPackages().toMutableSet()
+        current.add(packageName.trim().lowercase())
+        prefs.edit().putStringSet(KEY_LOCKED_PACKAGES, current).apply()
+    }
+
+    fun removeLockedPackage(packageName: String) {
+        val current = getLockedPackages().toMutableSet()
+        current.remove(packageName.trim().lowercase())
+        prefs.edit().putStringSet(KEY_LOCKED_PACKAGES, current).apply()
+    }
+
+    fun isPackageLocked(packageName: String): Boolean {
+        if (!appLockEnabled) return false
+        return getLockedPackages().contains(packageName.trim().lowercase())
     }
 
     var selectedVoiceName: String

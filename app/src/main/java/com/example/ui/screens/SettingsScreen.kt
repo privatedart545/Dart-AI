@@ -30,17 +30,21 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BrightnessMedium
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.filled.Hearing
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Visibility
@@ -559,7 +563,303 @@ fun SettingsScreen(
                 }
             }
 
-            // 5. Advanced Permissions & Quick Settings Tile
+            // 5. Custom Wake Word
+            var wakeWordEnabled by remember { mutableStateOf(viewModel.preferences.wakeWordEnabled) }
+            var wakePhrase by remember { mutableStateOf(viewModel.preferences.wakeWordPhrase) }
+            var customWakePhraseInput by remember { mutableStateOf("") }
+
+            SectionCard(title = "CUSTOM WAKE WORD", icon = Icons.Default.Hearing) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Hands-Free Wake Word",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        )
+                        Text(
+                            text = if (wakeWordEnabled) "Actively listening for \"$wakePhrase\"..." else "Speak wake word to trigger DEV AI hands-free.",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = if (wakeWordEnabled) StatusSuccess else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
+                    Switch(
+                        checked = wakeWordEnabled,
+                        onCheckedChange = {
+                            wakeWordEnabled = it
+                            viewModel.wakeWordManager.toggleWakeWordListening(it)
+                        },
+                        modifier = Modifier.testTag("settings_wake_word_switch")
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "Quick Wake Phrases:",
+                    style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val presetPhrases = listOf("Hey Dev", "Dev AI", "Computer", "Jarvis")
+                    presetPhrases.forEach { preset ->
+                        val isSelected = wakePhrase.equals(preset, ignoreCase = true)
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = {
+                                wakePhrase = preset
+                                viewModel.wakeWordManager.setWakeWordPhrase(preset)
+                            },
+                            label = { Text(preset, fontSize = 11.sp) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                            )
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = customWakePhraseInput,
+                        onValueChange = { customWakePhraseInput = it },
+                        placeholder = { Text("Or enter custom phrase...", fontSize = 12.sp) },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            if (customWakePhraseInput.isNotBlank()) {
+                                wakePhrase = customWakePhraseInput.trim()
+                                viewModel.wakeWordManager.setWakeWordPhrase(wakePhrase)
+                                customWakePhraseInput = ""
+                            }
+                        },
+                        enabled = customWakePhraseInput.isNotBlank(),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Set", fontSize = 12.sp)
+                    }
+                }
+            }
+
+            // 6. App Lock & Biometric Protection
+            var appLockEnabled by remember { mutableStateOf(viewModel.preferences.appLockEnabled) }
+            var showAppLockDialog by remember { mutableStateOf(false) }
+            val lockedApps = remember(appLockEnabled, showAppLockDialog) { viewModel.appLockManager.getLockedApps() }
+
+            SectionCard(title = "APP LOCK & BIOMETRICS", icon = Icons.Default.Lock) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "DEV AI App Lock Guard",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        )
+                        Text(
+                            text = if (appLockEnabled) "${lockedApps.size} apps secured with biometric lock" else "Lock sensitive apps with fingerprint / PIN",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = if (appLockEnabled) StatusSuccess else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
+                    Switch(
+                        checked = appLockEnabled,
+                        onCheckedChange = {
+                            appLockEnabled = it
+                            viewModel.appLockManager.setAppLockFeatureEnabled(it)
+                        },
+                        modifier = Modifier.testTag("settings_app_lock_switch")
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                OutlinedButton(
+                    onClick = { showAppLockDialog = true },
+                    modifier = Modifier.fillMaxWidth().testTag("manage_locked_apps_button"),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Icon(Icons.Default.Security, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Manage Locked Apps (${lockedApps.size} Locked)")
+                }
+
+                if (showAppLockDialog) {
+                    val allInstalled = remember { viewModel.appLaunchManager.listInstalledApps() }
+                    AlertDialog(
+                        onDismissRequest = { showAppLockDialog = false },
+                        title = { Text("Secure Apps with Biometrics", color = MaterialTheme.colorScheme.onSurface) },
+                        text = {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(300.dp)
+                                    .verticalScroll(rememberScrollState())
+                            ) {
+                                Text(
+                                    text = "Tap switch to lock or unlock an application with DEV AI Biometric Security:",
+                                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                allInstalled.forEach { app ->
+                                    val isLocked = viewModel.appLockManager.isAppLocked(app.packageName)
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(app.name, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface)
+                                            Text(app.packageName, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
+                                        Switch(
+                                            checked = isLocked,
+                                            onCheckedChange = { lock ->
+                                                if (lock) {
+                                                    viewModel.appLockManager.lockApp(app.packageName)
+                                                } else {
+                                                    viewModel.appLockManager.unlockApp(app.packageName)
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(onClick = { showAppLockDialog = false }) {
+                                Text("Done", fontWeight = FontWeight.Bold)
+                            }
+                        },
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                }
+            }
+
+            // 7. Display & Brightness Controls
+            val displayManager = viewModel.displayAndBrightnessManager
+            val displayStatus = remember { displayManager.getDisplayStatus() }
+            var currentBrightness by remember { mutableFloatStateOf(displayStatus.brightnessPercent.toFloat()) }
+            var isAutoBrightness by remember { mutableStateOf(displayStatus.isAutoBrightness) }
+            val hasWriteSettings = displayManager.hasWriteSettingsPermission()
+
+            SectionCard(title = "DISPLAY & BRIGHTNESS", icon = Icons.Default.BrightnessMedium) {
+                Text(
+                    text = "Screen Brightness: ${currentBrightness.toInt()}%",
+                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurface)
+                )
+                Slider(
+                    value = currentBrightness,
+                    onValueChange = {
+                        currentBrightness = it
+                        displayManager.setBrightness(it.toInt())
+                    },
+                    valueRange = 0f..100f,
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Adaptive / Auto Brightness",
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        )
+                        Text(
+                            text = if (isAutoBrightness) "Adjusts to ambient lighting automatically" else "Manual brightness mode",
+                            style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        )
+                    }
+                    Switch(
+                        checked = isAutoBrightness,
+                        onCheckedChange = {
+                            isAutoBrightness = it
+                            displayManager.setAutoBrightness(it)
+                        }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text(
+                    text = "Screen Timeout:",
+                    style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    listOf(15 to "15s", 30 to "30s", 60 to "1m", 120 to "2m", 300 to "5m").forEach { (sec, label) ->
+                        FilterChip(
+                            selected = displayStatus.screenTimeoutSeconds == sec,
+                            onClick = { displayManager.setScreenTimeout(sec) },
+                            label = { Text(label, fontSize = 11.sp) }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { displayManager.openDisplaySettings() },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Display Settings", fontSize = 11.sp)
+                    }
+                    if (!hasWriteSettings) {
+                        Button(
+                            onClick = { displayManager.openWriteSettingsPermission() },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = PurpleAccent)
+                        ) {
+                            Text("Grant Permission", fontSize = 11.sp)
+                        }
+                    }
+                }
+            }
+
+            // 8. Advanced Permissions & Quick Settings Tile
             SectionCard(title = "SPECIAL ACCESS & QUICK TILE", icon = Icons.Default.Tune) {
                 Text(
                     text = "Unlock full capabilities: notification reading, screen time auditing, and quick settings tile.",

@@ -19,9 +19,12 @@ import com.example.platform.SafFileManager
 import com.example.platform.SecurityVaultManager
 import com.example.platform.SystemSettingsManager
 import com.example.platform.WebSearchManager
+import com.example.platform.AppLockManager
 import com.example.platform.AppUsageAuditorManager
+import com.example.platform.DisplayAndBrightnessManager
 import com.example.platform.NotificationReaderManager
 import com.example.platform.ScheduledAutomationManager
+import com.example.platform.WakeWordManager
 import com.example.voice.VoiceAssistantManager
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -77,6 +80,10 @@ class ExampleRobolectricTest {
         val notificationReaderManager = NotificationReaderManager(context)
         val scheduledAutomationManager = ScheduledAutomationManager(context)
         val voiceAssistantManager = VoiceAssistantManager(context)
+        val preferences = com.example.data.preferences.DevAiPreferences(context)
+        val displayAndBrightnessManager = DisplayAndBrightnessManager(context)
+        val appLockManager = AppLockManager(context, preferences)
+        val wakeWordManager = WakeWordManager(context, preferences)
 
         val registry = ToolRegistry(
             flashlightManager = flashlightManager,
@@ -98,6 +105,9 @@ class ExampleRobolectricTest {
             notificationReaderManager = notificationReaderManager,
             scheduledAutomationManager = scheduledAutomationManager,
             voiceAssistantManager = voiceAssistantManager,
+            displayAndBrightnessManager = displayAndBrightnessManager,
+            appLockManager = appLockManager,
+            wakeWordManager = wakeWordManager,
             exportChatAction = { Result.success("Exported") }
         )
 
@@ -132,8 +142,44 @@ class ExampleRobolectricTest {
         assertNotNull(registry.getTool("open_volume_panel"))
         assertNotNull(registry.getTool("list_available_voices"))
         assertNotNull(registry.getTool("set_custom_voice"))
+        assertNotNull(registry.getTool("get_display_status"))
+        assertNotNull(registry.getTool("set_screen_brightness"))
+        assertNotNull(registry.getTool("set_auto_brightness"))
+        assertNotNull(registry.getTool("set_screen_timeout"))
+        assertNotNull(registry.getTool("open_display_settings"))
+        assertNotNull(registry.getTool("lock_app"))
+        assertNotNull(registry.getTool("unlock_app"))
+        assertNotNull(registry.getTool("list_locked_apps"))
+        assertNotNull(registry.getTool("toggle_app_lock"))
+        assertNotNull(registry.getTool("set_wake_phrase"))
+        assertNotNull(registry.getTool("toggle_wake_word"))
+        assertNotNull(registry.getTool("get_wake_word_status"))
 
         val apiTools = registry.getApiTools()
-        assertTrue(apiTools.size >= 40)
+        assertTrue(apiTools.size >= 50)
+    }
+
+    @Test
+    fun `verify display and brightness manager defaults`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val manager = DisplayAndBrightnessManager(context)
+        val status = manager.getDisplayStatus()
+        assertTrue(status.brightnessPercent in 0..100)
+        assertTrue(status.screenTimeoutSeconds >= 0)
+    }
+
+    @Test
+    fun `verify app lock and custom wake word preferences`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val preferences = com.example.data.preferences.DevAiPreferences(context)
+        preferences.wakeWordPhrase = "Hey Dev"
+        assertEquals("Hey Dev", preferences.wakeWordPhrase)
+
+        preferences.appLockEnabled = true
+        preferences.addLockedPackage("com.whatsapp")
+        assertTrue(preferences.isPackageLocked("com.whatsapp"))
+        preferences.removeLockedPackage("com.whatsapp")
+        assertTrue(!preferences.isPackageLocked("com.whatsapp"))
     }
 }
+

@@ -11,10 +11,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.BrightnessMedium
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.DriveFileMove
 import androidx.compose.material.icons.filled.FlashlightOn
+import androidx.compose.material.icons.filled.Hearing
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
@@ -50,6 +52,9 @@ fun QuickActionRow(
     val actions = listOf(
         QuickAction("Check Slack", "Is there any message from Slack?", Icons.Default.Notifications, "quick_action_slack"),
         QuickAction("Screen Time", "Audit my digital wellbeing and screen time today", Icons.Default.Schedule, "quick_action_screen_time"),
+        QuickAction("Brightness 50%", "Set screen brightness to 50%", Icons.Default.BrightnessMedium, "quick_action_brightness"),
+        QuickAction("Lock App", "Lock WhatsApp with biometric security", Icons.Default.Lock, "quick_action_lock_app"),
+        QuickAction("Wake Word", "Check my wake word status and settings", Icons.Default.Hearing, "quick_action_wake_word"),
         QuickAction("Show Alarms", "Show all my alarms", Icons.Default.Alarm, "quick_action_show_alarms"),
         QuickAction("Calendar Reminder", "Schedule a reminder for Project Sync tomorrow at 10 AM", Icons.Default.CalendarMonth, "quick_action_calendar"),
         QuickAction("Smart DND", "Apply Focus audio profile with Smart Do Not Disturb", Icons.Default.VolumeUp, "quick_action_dnd"),

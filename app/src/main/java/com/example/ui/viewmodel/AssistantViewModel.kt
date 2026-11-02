@@ -18,6 +18,7 @@ import com.example.data.db.DevAiDatabase
 import com.example.data.preferences.DevAiPreferences
 import com.example.platform.AlarmAndCalendarManager
 import com.example.platform.AppLaunchManager
+import com.example.platform.AppLockManager
 import com.example.platform.AppUsageAuditorManager
 import com.example.platform.AudioControlManager
 import com.example.platform.ClipboardAndMessagingManager
@@ -25,6 +26,7 @@ import com.example.platform.ContactsAndPhoneManager
 import com.example.platform.DailyBriefingManager
 import com.example.platform.DeepDocumentManager
 import com.example.platform.DeviceTelemetryManager
+import com.example.platform.DisplayAndBrightnessManager
 import com.example.platform.FlashlightManager
 import com.example.platform.MathCalculatorManager
 import com.example.platform.NotificationReaderManager
@@ -34,6 +36,7 @@ import com.example.platform.SafFileManager
 import com.example.platform.ScheduledAutomationManager
 import com.example.platform.SecurityVaultManager
 import com.example.platform.SystemSettingsManager
+import com.example.platform.WakeWordManager
 import com.example.platform.WebSearchManager
 import com.example.voice.VoiceAssistantManager
 import com.example.voice.VoiceState
@@ -89,6 +92,9 @@ class AssistantViewModel(application: Application) : AndroidViewModel(applicatio
     val appUsageAuditorManager = AppUsageAuditorManager(context)
     val notificationReaderManager = NotificationReaderManager(context)
     val scheduledAutomationManager = ScheduledAutomationManager(context)
+    val displayAndBrightnessManager = DisplayAndBrightnessManager(context)
+    val appLockManager = AppLockManager(context, preferences)
+    val wakeWordManager = WakeWordManager(context, preferences)
     val offlineSurvivalManager = OfflineSurvivalManager(
         flashlightManager,
         audioControlManager,
@@ -126,6 +132,9 @@ class AssistantViewModel(application: Application) : AndroidViewModel(applicatio
         notificationReaderManager = notificationReaderManager,
         scheduledAutomationManager = scheduledAutomationManager,
         voiceAssistantManager = voiceManager,
+        displayAndBrightnessManager = displayAndBrightnessManager,
+        appLockManager = appLockManager,
+        wakeWordManager = wakeWordManager,
         exportChatAction = { exportChatHistoryToMarkdown() }
     )
     private val toolExecutor = ToolExecutor(toolRegistry, context)
@@ -186,6 +195,18 @@ class AssistantViewModel(application: Application) : AndroidViewModel(applicatio
         initSession()
         listenToOrchestratorEvents()
         listenToVoiceResults()
+
+        appLaunchManager.appLockChecker = { packageName ->
+            appLockManager.isAppLocked(packageName)
+        }
+
+        wakeWordManager.onWakeWordTriggered = {
+            openVoiceModal()
+        }
+
+        if (preferences.wakeWordEnabled) {
+            wakeWordManager.startListening()
+        }
     }
 
     private fun initSession() {
@@ -527,6 +548,8 @@ class AssistantViewModel(application: Application) : AndroidViewModel(applicatio
 
     override fun onCleared() {
         super.onCleared()
+        wakeWordManager.stopListening()
+        appLockManager.cancelAuthentication()
         voiceManager.destroy()
     }
 }

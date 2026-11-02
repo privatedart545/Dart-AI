@@ -26,7 +26,10 @@ data class AppDetails(
     val isSystemApp: Boolean
 )
 
-class AppLaunchManager(private val context: Context) {
+class AppLaunchManager(
+    private val context: Context,
+    var appLockChecker: ((String) -> Boolean)? = null
+) {
 
     private val packageManager: PackageManager = context.packageManager
 
@@ -76,12 +79,18 @@ class AppLaunchManager(private val context: Context) {
             )
         }
 
+        val matchedName = allApps.firstOrNull { it.packageName == targetPackage }?.name ?: targetPackage
+        if (appLockChecker?.invoke(targetPackage) == true) {
+            return Result.failure(
+                Exception("SECURITY LOCK: App '$matchedName' ($targetPackage) is locked with DEV AI Biometric Security. Unlock it using fingerprint or PIN to proceed.")
+            )
+        }
+
         val launchIntent = packageManager.getLaunchIntentForPackage(targetPackage)
             ?: return Result.failure(Exception("App '$targetPackage' is installed but cannot be launched directly."))
 
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(launchIntent)
-        val matchedName = allApps.firstOrNull { it.packageName == targetPackage }?.name ?: targetPackage
         return Result.success("Successfully launched $matchedName ($targetPackage).")
     }
 

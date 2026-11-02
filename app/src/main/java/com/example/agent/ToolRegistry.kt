@@ -6,6 +6,7 @@ import com.example.domain.model.DeviceTool
 import com.example.domain.model.ToolResult
 import com.example.platform.AlarmAndCalendarManager
 import com.example.platform.AppLaunchManager
+import com.example.platform.AppLockManager
 import com.example.platform.AppUsageAuditorManager
 import com.example.platform.AudioControlManager
 import com.example.platform.ClipboardAndMessagingManager
@@ -13,6 +14,7 @@ import com.example.platform.ContactsAndPhoneManager
 import com.example.platform.DailyBriefingManager
 import com.example.platform.DeepDocumentManager
 import com.example.platform.DeviceTelemetryManager
+import com.example.platform.DisplayAndBrightnessManager
 import com.example.platform.FlashlightManager
 import com.example.platform.MathCalculatorManager
 import com.example.platform.NotificationReaderManager
@@ -21,6 +23,7 @@ import com.example.platform.SafFileManager
 import com.example.platform.ScheduledAutomationManager
 import com.example.platform.SecurityVaultManager
 import com.example.platform.SystemSettingsManager
+import com.example.platform.WakeWordManager
 import com.example.platform.WebSearchManager
 import com.example.voice.VoiceAssistantManager
 import org.json.JSONObject
@@ -45,6 +48,9 @@ class ToolRegistry(
     private val notificationReaderManager: NotificationReaderManager? = null,
     private val scheduledAutomationManager: ScheduledAutomationManager? = null,
     private val voiceAssistantManager: VoiceAssistantManager? = null,
+    private val displayAndBrightnessManager: DisplayAndBrightnessManager? = null,
+    private val appLockManager: AppLockManager? = null,
+    private val wakeWordManager: WakeWordManager? = null,
     private val exportChatAction: (suspend () -> Result<String>)? = null
 ) {
 
@@ -71,6 +77,9 @@ class ToolRegistry(
         registerNotificationReaderTools()
         registerScheduledAutomationTools()
         registerVoiceCustomizationTools()
+        registerDisplayAndBrightnessTools()
+        registerAppLockTools()
+        registerWakeWordTools()
     }
 
     fun getAllTools(): List<DeviceTool> = tools.values.toList()
@@ -1551,4 +1560,244 @@ class ToolRegistry(
             }
         })
     }
+
+    // --- 21. Display & Brightness Tools ---
+    private fun registerDisplayAndBrightnessTools() {
+        register(object : DeviceTool {
+            override val name = "get_display_status"
+            override val description = "Gets the current screen brightness level (0-100%), auto/adaptive brightness status, screen timeout, and system write permissions."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val manager = displayAndBrightnessManager ?: DisplayAndBrightnessManager(context)
+                val status = manager.getDisplayStatus()
+                val text = "Screen Brightness: ${status.brightnessPercent}%\n" +
+                        "Adaptive / Auto-Brightness: ${if (status.isAutoBrightness) "ON" else "OFF"}\n" +
+                        "Screen Timeout: ${status.screenTimeoutSeconds}s (${status.screenTimeoutSeconds / 60}m ${status.screenTimeoutSeconds % 60}s)\n" +
+                        "System Write Permission: ${if (status.hasWriteSettingsPermission) "GRANTED" else "REQUIRED (Grant needed to adjust directly)"}"
+                return ToolResult(true, text)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "set_screen_brightness"
+            override val description = "Sets the screen brightness level from 0 to 100 percent."
+            override val parameterSchema = mapOf(
+                "type" to "object",
+                "properties" to mapOf(
+                    "brightness_percent" to mapOf(
+                        "type" to "integer",
+                        "description" to "Brightness percentage between 0 and 100."
+                    )
+                ),
+                "required" to listOf("brightness_percent")
+            )
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val percent = arguments.optInt("brightness_percent", -1)
+                if (percent !in 0..100) return ToolResult(false, "brightness_percent must be an integer between 0 and 100.")
+                val manager = displayAndBrightnessManager ?: DisplayAndBrightnessManager(context)
+                val result = manager.setBrightness(percent)
+                return ToolResult(true, result)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "set_auto_brightness"
+            override val description = "Enables or disables automatic/adaptive screen brightness based on ambient light."
+            override val parameterSchema = mapOf(
+                "type" to "object",
+                "properties" to mapOf(
+                    "enable" to mapOf("type" to "boolean", "description" to "True to enable auto brightness, false for manual.")
+                ),
+                "required" to listOf("enable")
+            )
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val enable = arguments.optBoolean("enable", true)
+                val manager = displayAndBrightnessManager ?: DisplayAndBrightnessManager(context)
+                val result = manager.setAutoBrightness(enable)
+                return ToolResult(true, result)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "set_screen_timeout"
+            override val description = "Sets the screen timeout duration in seconds (e.g. 15, 30, 60, 120, 300, 600)."
+            override val parameterSchema = mapOf(
+                "type" to "object",
+                "properties" to mapOf(
+                    "seconds" to mapOf("type" to "integer", "description" to "Screen timeout in seconds (minimum 15s).")
+                ),
+                "required" to listOf("seconds")
+            )
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val seconds = arguments.optInt("seconds", 30)
+                val manager = displayAndBrightnessManager ?: DisplayAndBrightnessManager(context)
+                val result = manager.setScreenTimeout(seconds)
+                return ToolResult(true, result)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "open_display_settings"
+            override val description = "Opens Android Display Settings for Night Light, wallpaper, refresh rate, and font size."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val manager = displayAndBrightnessManager ?: DisplayAndBrightnessManager(context)
+                val opened = manager.openDisplaySettings()
+                return if (opened) ToolResult(true, "Display settings opened.")
+                else ToolResult(false, "Failed to launch display settings.")
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "open_write_settings_permission"
+            override val description = "Opens Android permission screen to allow DEV AI to modify system settings (brightness, timeout)."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val manager = displayAndBrightnessManager ?: DisplayAndBrightnessManager(context)
+                val opened = manager.openWriteSettingsPermission()
+                return if (opened) ToolResult(true, "Opened Modify System Settings permission page.")
+                else ToolResult(false, "Failed to open settings permission page.")
+            }
+        })
+    }
+
+    // --- 22. App Lock & Biometric Tools ---
+    private fun registerAppLockTools() {
+        register(object : DeviceTool {
+            override val name = "lock_app"
+            override val description = "Locks an app with DEV AI Biometric Security so fingerprint or PIN is required before launching."
+            override val parameterSchema = mapOf(
+                "type" to "object",
+                "properties" to mapOf(
+                    "app_query" to mapOf("type" to "string", "description" to "The name of the app or package name to lock (e.g. 'WhatsApp', 'Gallery', 'Chrome').")
+                ),
+                "required" to listOf("app_query")
+            )
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val query = arguments.optString("app_query", "").trim()
+                if (query.isEmpty()) return ToolResult(false, "app_query argument is required.")
+                val manager = appLockManager ?: AppLockManager(context, com.example.data.preferences.DevAiPreferences(context))
+                val result = manager.lockApp(query)
+                return ToolResult(true, result)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "unlock_app"
+            override val description = "Unlocks an app from DEV AI Biometric Security protection."
+            override val parameterSchema = mapOf(
+                "type" to "object",
+                "properties" to mapOf(
+                    "app_query" to mapOf("type" to "string", "description" to "The name or package name of the app to remove from lock protection.")
+                ),
+                "required" to listOf("app_query")
+            )
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val query = arguments.optString("app_query", "").trim()
+                if (query.isEmpty()) return ToolResult(false, "app_query argument is required.")
+                val manager = appLockManager ?: AppLockManager(context, com.example.data.preferences.DevAiPreferences(context))
+                val result = manager.unlockApp(query)
+                return ToolResult(true, result)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "list_locked_apps"
+            override val description = "Lists all applications currently locked with DEV AI Biometric Security."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val manager = appLockManager ?: AppLockManager(context, com.example.data.preferences.DevAiPreferences(context))
+                val locked = manager.getLockedApps()
+                return if (locked.isEmpty()) {
+                    ToolResult(true, "No apps are currently locked by DEV AI App Lock. You can lock apps using 'lock_app'.")
+                } else {
+                    val list = locked.joinToString("\n") { "🔒 ${it.appName} (${it.packageName})" }
+                    ToolResult(true, "Currently Locked Apps (${locked.size}):\n$list")
+                }
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "toggle_app_lock"
+            override val description = "Enables or disables the entire DEV AI App Lock security guard."
+            override val parameterSchema = mapOf(
+                "type" to "object",
+                "properties" to mapOf(
+                    "enable" to mapOf("type" to "boolean", "description" to "True to enable App Lock, false to disable.")
+                ),
+                "required" to listOf("enable")
+            )
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val enable = arguments.optBoolean("enable", true)
+                val manager = appLockManager ?: AppLockManager(context, com.example.data.preferences.DevAiPreferences(context))
+                manager.setAppLockFeatureEnabled(enable)
+                return ToolResult(true, "DEV AI App Lock guard is now ${if (enable) "ACTIVE" else "DISABLED"}.")
+            }
+        })
+    }
+
+    // --- 23. Custom Wake Word Tools ---
+    private fun registerWakeWordTools() {
+        register(object : DeviceTool {
+            override val name = "set_wake_phrase"
+            override val description = "Configures the custom voice wake word phrase for hands-free activation (e.g. 'Hey Dev', 'Dev AI', 'Computer', 'Jarvis')."
+            override val parameterSchema = mapOf(
+                "type" to "object",
+                "properties" to mapOf(
+                    "wake_phrase" to mapOf("type" to "string", "description" to "The target phrase to trigger DEV AI.")
+                ),
+                "required" to listOf("wake_phrase")
+            )
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val phrase = arguments.optString("wake_phrase", "").trim()
+                if (phrase.isEmpty()) return ToolResult(false, "wake_phrase argument is required.")
+                val manager = wakeWordManager ?: WakeWordManager(context, com.example.data.preferences.DevAiPreferences(context))
+                val res = manager.setWakeWordPhrase(phrase)
+                return ToolResult(true, res)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "toggle_wake_word"
+            override val description = "Enables or disables continuous hands-free wake word listening for DEV AI."
+            override val parameterSchema = mapOf(
+                "type" to "object",
+                "properties" to mapOf(
+                    "enable" to mapOf("type" to "boolean", "description" to "True to start listening for wake word, false to stop.")
+                ),
+                "required" to listOf("enable")
+            )
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val enable = arguments.optBoolean("enable", true)
+                val manager = wakeWordManager ?: WakeWordManager(context, com.example.data.preferences.DevAiPreferences(context))
+                val res = manager.toggleWakeWordListening(enable)
+                return ToolResult(true, res)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "get_wake_word_status"
+            override val description = "Checks the status of wake word listening, current wake phrase, and trigger sensitivity."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val manager = wakeWordManager ?: WakeWordManager(context, com.example.data.preferences.DevAiPreferences(context))
+                val summary = manager.getStatusSummary()
+                return ToolResult(true, summary)
+            }
+        })
+    }
 }
+
