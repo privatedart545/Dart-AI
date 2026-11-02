@@ -21,6 +21,8 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.AutoMode
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VolumeUp
@@ -50,6 +52,9 @@ fun QuickActionRow(
     modifier: Modifier = Modifier
 ) {
     val actions = listOf(
+        QuickAction("Battery Health", "Run a complete battery health, degradation, and temperature diagnostic", Icons.Default.BatteryChargingFull, "quick_action_battery_health"),
+        QuickAction("Media Control", "Check currently playing track and media controls", Icons.Default.PlayArrow, "quick_action_media"),
+        QuickAction("Custom Routines", "List my custom If This Then That automation routines", Icons.Default.AutoMode, "quick_action_routines"),
         QuickAction("Check Slack", "Is there any message from Slack?", Icons.Default.Notifications, "quick_action_slack"),
         QuickAction("Screen Time", "Audit my digital wellbeing and screen time today", Icons.Default.Schedule, "quick_action_screen_time"),
         QuickAction("Brightness 50%", "Set screen brightness to 50%", Icons.Default.BrightnessMedium, "quick_action_brightness"),
@@ -63,8 +68,7 @@ fun QuickActionRow(
         QuickAction("Move File", "Move file notes.txt to folder Archive", Icons.Default.DriveFileMove, "quick_action_move_file"),
         QuickAction("Flashlight", "Turn on flashlight", Icons.Default.FlashlightOn, "quick_action_flashlight"),
         QuickAction("Calculate", "Calculate sqrt(144) + (25 * 4)", Icons.Default.Calculate, "quick_action_calc"),
-        QuickAction("Settings", "Open Android Settings Hub", Icons.Default.Settings, "quick_action_settings"),
-        QuickAction("Battery", "Check my battery status and power saver", Icons.Default.BatteryChargingFull, "quick_action_battery")
+        QuickAction("Settings", "Open Android Settings Hub", Icons.Default.Settings, "quick_action_settings")
     )
 
     Row(

@@ -21,7 +21,10 @@ import com.example.platform.SystemSettingsManager
 import com.example.platform.WebSearchManager
 import com.example.platform.AppLockManager
 import com.example.platform.AppUsageAuditorManager
+import com.example.platform.BatteryHealthManager
+import com.example.platform.CustomRoutineEngine
 import com.example.platform.DisplayAndBrightnessManager
+import com.example.platform.MediaControlManager
 import com.example.platform.NotificationReaderManager
 import com.example.platform.ScheduledAutomationManager
 import com.example.platform.WakeWordManager
@@ -84,6 +87,17 @@ class ExampleRobolectricTest {
         val displayAndBrightnessManager = DisplayAndBrightnessManager(context)
         val appLockManager = AppLockManager(context, preferences)
         val wakeWordManager = WakeWordManager(context, preferences)
+        val batteryHealthManager = BatteryHealthManager(context)
+        val mediaControlManager = MediaControlManager(context)
+        val customRoutineEngine = CustomRoutineEngine(
+            context,
+            preferences,
+            voiceAssistantManager,
+            flashlightManager,
+            displayAndBrightnessManager,
+            audioControlManager,
+            mediaControlManager
+        )
 
         val registry = ToolRegistry(
             flashlightManager = flashlightManager,
@@ -108,6 +122,9 @@ class ExampleRobolectricTest {
             displayAndBrightnessManager = displayAndBrightnessManager,
             appLockManager = appLockManager,
             wakeWordManager = wakeWordManager,
+            batteryHealthManager = batteryHealthManager,
+            customRoutineEngine = customRoutineEngine,
+            mediaControlManager = mediaControlManager,
             exportChatAction = { Result.success("Exported") }
         )
 
@@ -154,9 +171,24 @@ class ExampleRobolectricTest {
         assertNotNull(registry.getTool("set_wake_phrase"))
         assertNotNull(registry.getTool("toggle_wake_word"))
         assertNotNull(registry.getTool("get_wake_word_status"))
+        assertNotNull(registry.getTool("get_battery_health_report"))
+        assertNotNull(registry.getTool("run_battery_diagnostic"))
+        assertNotNull(registry.getTool("open_battery_settings"))
+        assertNotNull(registry.getTool("create_custom_routine"))
+        assertNotNull(registry.getTool("list_custom_routines"))
+        assertNotNull(registry.getTool("toggle_custom_routine"))
+        assertNotNull(registry.getTool("delete_custom_routine"))
+        assertNotNull(registry.getTool("test_trigger_routine"))
+        assertNotNull(registry.getTool("get_current_media_track"))
+        assertNotNull(registry.getTool("media_play"))
+        assertNotNull(registry.getTool("media_pause"))
+        assertNotNull(registry.getTool("media_play_pause"))
+        assertNotNull(registry.getTool("media_next_track"))
+        assertNotNull(registry.getTool("media_previous_track"))
+        assertNotNull(registry.getTool("set_media_volume"))
 
         val apiTools = registry.getApiTools()
-        assertTrue(apiTools.size >= 50)
+        assertTrue(apiTools.size >= 60)
     }
 
     @Test
@@ -180,6 +212,49 @@ class ExampleRobolectricTest {
         assertTrue(preferences.isPackageLocked("com.whatsapp"))
         preferences.removeLockedPackage("com.whatsapp")
         assertTrue(!preferences.isPackageLocked("com.whatsapp"))
+    }
+
+    @Test
+    fun `verify battery health manager report`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val manager = BatteryHealthManager(context)
+        val report = manager.getBatteryHealthReport()
+        assertTrue(report.percentage >= 0)
+        assertTrue(report.temperatureC > 0f)
+        assertTrue(report.healthStatus.isNotEmpty())
+        assertTrue(report.degradationRating.isNotEmpty())
+        assertTrue(report.estimatedHealthPercentage in 50..100)
+    }
+
+    @Test
+    fun `verify custom routine engine creation and toggle`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val preferences = com.example.data.preferences.DevAiPreferences(context)
+        val engine = CustomRoutineEngine(context, preferences)
+        val routine = engine.createRoutine(
+            name = "Test Low Battery Guard",
+            triggerType = "battery_below",
+            triggerParam = "15",
+            actionType = "speak_text",
+            actionParam = "Battery below 15 percent"
+        )
+        assertNotNull(routine.id)
+        assertEquals("Test Low Battery Guard", routine.name)
+
+        val toggled = engine.toggleRoutine(routine.id, false)
+        assertTrue(toggled)
+
+        val deleted = engine.deleteRoutine(routine.id)
+        assertTrue(deleted)
+    }
+
+    @Test
+    fun `verify media control manager volume`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val manager = MediaControlManager(context)
+        val res = manager.setMediaVolume(80)
+        assertTrue(res.contains("80%"))
+        assertNotNull(manager.getMediaStatusSummary())
     }
 }
 

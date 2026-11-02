@@ -21,14 +21,17 @@ import com.example.platform.AppLaunchManager
 import com.example.platform.AppLockManager
 import com.example.platform.AppUsageAuditorManager
 import com.example.platform.AudioControlManager
+import com.example.platform.BatteryHealthManager
 import com.example.platform.ClipboardAndMessagingManager
 import com.example.platform.ContactsAndPhoneManager
+import com.example.platform.CustomRoutineEngine
 import com.example.platform.DailyBriefingManager
 import com.example.platform.DeepDocumentManager
 import com.example.platform.DeviceTelemetryManager
 import com.example.platform.DisplayAndBrightnessManager
 import com.example.platform.FlashlightManager
 import com.example.platform.MathCalculatorManager
+import com.example.platform.MediaControlManager
 import com.example.platform.NotificationReaderManager
 import com.example.platform.OfflineSurvivalManager
 import com.example.platform.RoutinesAndDiagnosticsManager
@@ -95,6 +98,8 @@ class AssistantViewModel(application: Application) : AndroidViewModel(applicatio
     val displayAndBrightnessManager = DisplayAndBrightnessManager(context)
     val appLockManager = AppLockManager(context, preferences)
     val wakeWordManager = WakeWordManager(context, preferences)
+    val batteryHealthManager = BatteryHealthManager(context)
+    val mediaControlManager = MediaControlManager(context)
     val offlineSurvivalManager = OfflineSurvivalManager(
         flashlightManager,
         audioControlManager,
@@ -109,6 +114,16 @@ class AssistantViewModel(application: Application) : AndroidViewModel(applicatio
     // Voice manager
     val voiceManager = VoiceAssistantManager(context)
     val voiceState: StateFlow<VoiceState> = voiceManager.voiceState
+
+    val customRoutineEngine = CustomRoutineEngine(
+        context,
+        preferences,
+        voiceManager,
+        flashlightManager,
+        displayAndBrightnessManager,
+        audioControlManager,
+        mediaControlManager
+    )
 
     // API & Agent
     val openRouterClient = OpenRouterClient()
@@ -135,6 +150,9 @@ class AssistantViewModel(application: Application) : AndroidViewModel(applicatio
         displayAndBrightnessManager = displayAndBrightnessManager,
         appLockManager = appLockManager,
         wakeWordManager = wakeWordManager,
+        batteryHealthManager = batteryHealthManager,
+        customRoutineEngine = customRoutineEngine,
+        mediaControlManager = mediaControlManager,
         exportChatAction = { exportChatHistoryToMarkdown() }
     )
     private val toolExecutor = ToolExecutor(toolRegistry, context)
@@ -548,6 +566,7 @@ class AssistantViewModel(application: Application) : AndroidViewModel(applicatio
 
     override fun onCleared() {
         super.onCleared()
+        customRoutineEngine.stopTriggerMonitoring()
         wakeWordManager.stopListening()
         appLockManager.cancelAuthentication()
         voiceManager.destroy()

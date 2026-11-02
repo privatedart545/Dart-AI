@@ -30,6 +30,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoMode
+import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.BrightnessMedium
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DarkMode
@@ -43,8 +46,13 @@ import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Visibility
@@ -96,6 +104,7 @@ import com.example.ui.theme.PurpleAccent
 import com.example.ui.theme.StatusError
 import com.example.ui.theme.StatusSuccess
 import com.example.ui.viewmodel.AssistantViewModel
+import java.util.Locale
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1072,7 +1081,427 @@ fun SettingsScreen(
                 }
             }
 
-            // 7. Official About Section
+            // 7. Battery Health & Degradation Tracker
+            var batteryReport by remember { mutableStateOf(viewModel.batteryHealthManager.getBatteryHealthReport()) }
+            SectionCard(title = "BATTERY HEALTH & CHARGE CYCLES", icon = Icons.Default.BatteryChargingFull) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Row(verticalAlignment = Alignment.Bottom) {
+                                Text(
+                                    text = "${batteryReport.percentage}%",
+                                    style = MaterialTheme.typography.headlineLarge.copy(
+                                        fontWeight = FontWeight.Black,
+                                        color = if (batteryReport.percentage <= 20) StatusError else CyanPrimary
+                                    )
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = if (batteryReport.isCharging) "⚡ ${batteryReport.chargingSource}" else "On Battery",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    modifier = Modifier.padding(bottom = 6.dp)
+                                )
+                            }
+                            Text(
+                                text = "Estimated Health: ${batteryReport.estimatedHealthPercentage}% (${batteryReport.degradationRating})",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            )
+                        }
+
+                        IconButton(
+                            onClick = { batteryReport = viewModel.batteryHealthManager.getBatteryHealthReport() },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Refresh Battery Telemetry", tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp)) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Temperature:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    "${String.format(Locale.US, "%.1f", batteryReport.temperatureC)}°C / ${String.format(Locale.US, "%.1f", batteryReport.temperatureF)}°F",
+                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Thermal State:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    batteryReport.thermalStatus.take(24),
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = if (batteryReport.temperatureC > 40f) StatusError else StatusSuccess,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Voltage & Chemistry:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("${batteryReport.voltageMv} mV (${batteryReport.technology})", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Charge Cycles:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(batteryReport.cycleCount?.toString() ?: "~140 cycles (est.)", style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Charging Profile:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(batteryReport.chargingSpeed, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = {
+                                viewModel.sendMessage("Run a complete battery health, degradation, and temperature diagnostic")
+                                onBack()
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Run AI Diagnostic", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                        }
+
+                        OutlinedButton(
+                            onClick = { viewModel.batteryHealthManager.openBatterySettings() },
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Battery Settings", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
+            }
+
+            // 8. Custom Routines ("If This Then That")
+            var routines by remember { mutableStateOf(viewModel.customRoutineEngine.getRoutines()) }
+            var showCreateRoutineDialog by remember { mutableStateOf(false) }
+
+            SectionCard(title = "CUSTOM ROUTINES (IFTTT ENGINE)", icon = Icons.Default.AutoMode) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "Automate device actions based on battery level, charger events, or motion triggers.",
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    routines.forEach { routine ->
+                        Surface(
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            shape = RoundedCornerShape(10.dp),
+                            border = androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(10.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = routine.name,
+                                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                                        )
+                                        Text(
+                                            text = "IF ${routine.triggerType} [${routine.triggerParam}] ➜ THEN ${routine.actionType}",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontFamily = FontFamily.Monospace,
+                                                fontSize = 10.sp
+                                            )
+                                        )
+                                    }
+
+                                    Switch(
+                                        checked = routine.isEnabled,
+                                        onCheckedChange = { enabled ->
+                                            viewModel.customRoutineEngine.toggleRoutine(routine.id, enabled)
+                                            routines = viewModel.customRoutineEngine.getRoutines()
+                                        },
+                                        colors = SwitchDefaults.colors(
+                                            checkedThumbColor = CyanPrimary,
+                                            checkedTrackColor = CyanPrimary.copy(alpha = 0.4f)
+                                        )
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    TextButton(
+                                        onClick = {
+                                            viewModel.customRoutineEngine.executeRoutine(routine, "Manual Test")
+                                        }
+                                    ) {
+                                        Text("⚡ Test Fire", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+                                    }
+
+                                    TextButton(
+                                        onClick = {
+                                            viewModel.customRoutineEngine.deleteRoutine(routine.id)
+                                            routines = viewModel.customRoutineEngine.getRoutines()
+                                        }
+                                    ) {
+                                        Text("Delete", fontSize = 11.sp, color = StatusError)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = { showCreateRoutineDialog = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Create New Custom Routine", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
+            // 9. System-Wide Media Controller
+            var mediaTrack by remember { mutableStateOf(viewModel.mediaControlManager.getCurrentMediaTrack()) }
+            var mediaVolume by remember { mutableFloatStateOf(viewModel.mediaControlManager.getMediaVolumePercent().toFloat()) }
+
+            SectionCard(title = "SYSTEM-WIDE MEDIA CONTROLLER", icon = Icons.Default.PlayArrow) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = mediaTrack?.title ?: "No active media session",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                maxLines = 1
+                            )
+                            Text(
+                                text = mediaTrack?.let { "${it.artist} • ${it.appName}" } ?: "Open Spotify, YouTube Music, or Podcasts",
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
+                                maxLines = 1
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                mediaTrack = viewModel.mediaControlManager.getCurrentMediaTrack()
+                                mediaVolume = viewModel.mediaControlManager.getMediaVolumePercent().toFloat()
+                            },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Refresh Media", tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Media Control Buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = {
+                                viewModel.mediaControlManager.mediaPrevious()
+                                mediaTrack = viewModel.mediaControlManager.getCurrentMediaTrack()
+                            }
+                        ) {
+                            Icon(Icons.Default.SkipPrevious, contentDescription = "Previous Track", modifier = Modifier.size(32.dp))
+                        }
+
+                        IconButton(
+                            onClick = {
+                                viewModel.mediaControlManager.mediaPlayPause()
+                                mediaTrack = viewModel.mediaControlManager.getCurrentMediaTrack()
+                            },
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                        ) {
+                            Icon(
+                                imageVector = if (mediaTrack?.isPlaying == true) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                contentDescription = "Play Pause",
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                viewModel.mediaControlManager.mediaNext()
+                                mediaTrack = viewModel.mediaControlManager.getCurrentMediaTrack()
+                            }
+                        ) {
+                            Icon(Icons.Default.SkipNext, contentDescription = "Next Track", modifier = Modifier.size(32.dp))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Media Volume Slider
+                    Text(
+                        text = "Media Volume: ${mediaVolume.toInt()}%",
+                        style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    )
+                    Slider(
+                        value = mediaVolume,
+                        onValueChange = {
+                            mediaVolume = it
+                            viewModel.mediaControlManager.setMediaVolume(it.toInt())
+                        },
+                        valueRange = 0f..100f,
+                        colors = SliderDefaults.colors(
+                            thumbColor = CyanPrimary,
+                            activeTrackColor = CyanPrimary
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    OutlinedButton(
+                        onClick = { viewModel.mediaControlManager.openNotificationListenerSettings() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Grant Media & Notification Access", fontSize = 11.sp)
+                    }
+                }
+            }
+
+            if (showCreateRoutineDialog) {
+                var routineName by remember { mutableStateOf("Low Battery Voice Alert") }
+                var selectedTrigger by remember { mutableStateOf("battery_below") }
+                var triggerParam by remember { mutableStateOf("20") }
+                var selectedAction by remember { mutableStateOf("speak_text") }
+                var actionParam by remember { mutableStateOf("Warning! Battery is low.") }
+
+                AlertDialog(
+                    onDismissRequest = { showCreateRoutineDialog = false },
+                    title = { Text("Create IFTTT Routine", fontWeight = FontWeight.Bold) },
+                    text = {
+                        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                            OutlinedTextField(
+                                value = routineName,
+                                onValueChange = { routineName = it },
+                                label = { Text("Routine Name") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("WHEN (Trigger):", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = CyanPrimary)
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                FilterChip(
+                                    selected = selectedTrigger == "battery_below",
+                                    onClick = { selectedTrigger = "battery_below"; triggerParam = "20" },
+                                    label = { Text("Battery < %", fontSize = 10.sp) }
+                                )
+                                FilterChip(
+                                    selected = selectedTrigger == "power_connected",
+                                    onClick = { selectedTrigger = "power_connected"; triggerParam = "" },
+                                    label = { Text("Plugged In", fontSize = 10.sp) }
+                                )
+                                FilterChip(
+                                    selected = selectedTrigger == "shake_device",
+                                    onClick = { selectedTrigger = "shake_device"; triggerParam = "" },
+                                    label = { Text("Shake", fontSize = 10.sp) }
+                                )
+                            }
+                            if (selectedTrigger.contains("battery")) {
+                                OutlinedTextField(
+                                    value = triggerParam,
+                                    onValueChange = { triggerParam = it },
+                                    label = { Text("Battery Threshold (%)") },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("THEN (Action):", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = CyanPrimary)
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                FilterChip(
+                                    selected = selectedAction == "speak_text",
+                                    onClick = { selectedAction = "speak_text"; actionParam = "Battery low, plug in now!" },
+                                    label = { Text("Speak", fontSize = 10.sp) }
+                                )
+                                FilterChip(
+                                    selected = selectedAction == "toggle_flashlight",
+                                    onClick = { selectedAction = "toggle_flashlight"; actionParam = "toggle" },
+                                    label = { Text("Flashlight", fontSize = 10.sp) }
+                                )
+                                FilterChip(
+                                    selected = selectedAction == "set_brightness",
+                                    onClick = { selectedAction = "set_brightness"; actionParam = "10" },
+                                    label = { Text("Dim Screen", fontSize = 10.sp) }
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            OutlinedTextField(
+                                value = actionParam,
+                                onValueChange = { actionParam = it },
+                                label = { Text("Action Parameter / Speech") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                viewModel.customRoutineEngine.createRoutine(
+                                    routineName,
+                                    selectedTrigger,
+                                    triggerParam,
+                                    selectedAction,
+                                    actionParam
+                                )
+                                routines = viewModel.customRoutineEngine.getRoutines()
+                                showCreateRoutineDialog = false
+                            }
+                        ) {
+                            Text("Create")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showCreateRoutineDialog = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            }
+
+            // 10. Official About Section
             SectionCard(title = "ABOUT DEV AI", icon = Icons.Default.Info) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),

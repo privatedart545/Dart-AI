@@ -17,6 +17,9 @@ import com.example.platform.DeviceTelemetryManager
 import com.example.platform.DisplayAndBrightnessManager
 import com.example.platform.FlashlightManager
 import com.example.platform.MathCalculatorManager
+import com.example.platform.BatteryHealthManager
+import com.example.platform.CustomRoutineEngine
+import com.example.platform.MediaControlManager
 import com.example.platform.NotificationReaderManager
 import com.example.platform.RoutinesAndDiagnosticsManager
 import com.example.platform.SafFileManager
@@ -51,6 +54,9 @@ class ToolRegistry(
     private val displayAndBrightnessManager: DisplayAndBrightnessManager? = null,
     private val appLockManager: AppLockManager? = null,
     private val wakeWordManager: WakeWordManager? = null,
+    private val batteryHealthManager: BatteryHealthManager? = null,
+    private val customRoutineEngine: CustomRoutineEngine? = null,
+    private val mediaControlManager: MediaControlManager? = null,
     private val exportChatAction: (suspend () -> Result<String>)? = null
 ) {
 
@@ -80,6 +86,9 @@ class ToolRegistry(
         registerDisplayAndBrightnessTools()
         registerAppLockTools()
         registerWakeWordTools()
+        registerBatteryHealthTools()
+        registerCustomRoutineTools()
+        registerMediaControlTools()
     }
 
     fun getAllTools(): List<DeviceTool> = tools.values.toList()
@@ -1796,6 +1805,320 @@ class ToolRegistry(
                 val manager = wakeWordManager ?: WakeWordManager(context, com.example.data.preferences.DevAiPreferences(context))
                 val summary = manager.getStatusSummary()
                 return ToolResult(true, summary)
+            }
+        })
+    }
+
+    private fun registerBatteryHealthTools() {
+        register(object : DeviceTool {
+            override val name = "get_battery_health_report"
+            override val description = "Fetches detailed battery health, temperature, voltage, charge cycles, charging speed, and degradation score."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val manager = batteryHealthManager ?: BatteryHealthManager(context)
+                val summary = manager.generateDiagnosticSummary()
+                return ToolResult(true, summary)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "run_battery_diagnostic"
+            override val description = "Runs a deep battery diagnostic analyzing cell wear, thermal throttling risks, and actionable battery longevity tips."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val manager = batteryHealthManager ?: BatteryHealthManager(context)
+                val summary = manager.generateDiagnosticSummary()
+                return ToolResult(true, summary)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "open_battery_settings"
+            override val description = "Opens Android system Battery Usage, Health, or Battery Saver settings screen."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val manager = batteryHealthManager ?: BatteryHealthManager(context)
+                val res = manager.openBatterySettings()
+                return if (res.isSuccess) {
+                    ToolResult(true, res.getOrDefault("Opened Android Battery Settings."))
+                } else {
+                    ToolResult(false, "Failed opening battery settings: ${res.exceptionOrNull()?.message}")
+                }
+            }
+        })
+    }
+
+    private fun registerCustomRoutineTools() {
+        register(object : DeviceTool {
+            override val name = "create_custom_routine"
+            override val description = "Creates a custom 'If This Then That' automation rule. Trigger types: 'battery_below', 'battery_above', 'power_connected', 'power_disconnected', 'shake_device'. Action types: 'speak_text', 'toggle_flashlight', 'set_brightness', 'set_audio_profile', 'open_battery_saver', 'media_play_pause', 'send_notification', 'launch_app'."
+            override val parameterSchema = mapOf(
+                "type" to "object",
+                "properties" to mapOf(
+                    "name" to mapOf("type" to "string", "description" to "Friendly name of the routine (e.g. 'Battery Saver Guard')"),
+                    "trigger_type" to mapOf("type" to "string", "description" to "Trigger type: 'battery_below', 'battery_above', 'power_connected', 'power_disconnected', 'shake_device'"),
+                    "trigger_param" to mapOf("type" to "string", "description" to "Trigger parameter (e.g. '20' for 20% battery, or empty for power/shake)"),
+                    "action_type" to mapOf("type" to "string", "description" to "Action type: 'speak_text', 'toggle_flashlight', 'set_brightness', 'set_audio_profile', 'open_battery_saver', 'media_play_pause', 'send_notification', 'launch_app'"),
+                    "action_param" to mapOf("type" to "string", "description" to "Action parameter (e.g. text to speak, brightness percent '50', audio profile 'silent', app package name)")
+                ),
+                "required" to listOf("name", "trigger_type", "action_type")
+            )
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val name = arguments.optString("name", "Custom Routine")
+                val triggerType = arguments.optString("trigger_type", "battery_below")
+                val triggerParam = arguments.optString("trigger_param", "")
+                val actionType = arguments.optString("action_type", "speak_text")
+                val actionParam = arguments.optString("action_param", "")
+
+                val engine = customRoutineEngine ?: CustomRoutineEngine(
+                    context,
+                    com.example.data.preferences.DevAiPreferences(context),
+                    voiceAssistantManager,
+                    flashlightManager,
+                    displayAndBrightnessManager,
+                    audioControlManager,
+                    mediaControlManager
+                )
+
+                val created = engine.createRoutine(name, triggerType, triggerParam, actionType, actionParam)
+                return ToolResult(
+                    true,
+                    "Created DEV AI Custom Routine \"${created.name}\" (ID: ${created.id})\n" +
+                            "Trigger: IF ${created.triggerType} [${created.triggerParam}]\n" +
+                            "Action: THEN ${created.actionType} \"${created.actionParam}\""
+                )
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "list_custom_routines"
+            override val description = "Lists all configured DEV AI custom 'If This Then That' automation routines, trigger status, and stats."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val engine = customRoutineEngine ?: CustomRoutineEngine(
+                    context,
+                    com.example.data.preferences.DevAiPreferences(context),
+                    voiceAssistantManager,
+                    flashlightManager,
+                    displayAndBrightnessManager,
+                    audioControlManager,
+                    mediaControlManager
+                )
+                return ToolResult(true, engine.formatRoutinesSummary())
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "toggle_custom_routine"
+            override val description = "Enables or disables a specific custom routine by its ID."
+            override val parameterSchema = mapOf(
+                "type" to "object",
+                "properties" to mapOf(
+                    "id" to mapOf("type" to "string", "description" to "Routine ID to toggle"),
+                    "enable" to mapOf("type" to "boolean", "description" to "True to enable, false to disable")
+                ),
+                "required" to listOf("id", "enable")
+            )
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val id = arguments.optString("id", "")
+                val enable = arguments.optBoolean("enable", true)
+                if (id.isEmpty()) return ToolResult(false, "Routine id argument is required.")
+
+                val engine = customRoutineEngine ?: CustomRoutineEngine(
+                    context,
+                    com.example.data.preferences.DevAiPreferences(context),
+                    voiceAssistantManager,
+                    flashlightManager,
+                    displayAndBrightnessManager,
+                    audioControlManager,
+                    mediaControlManager
+                )
+                val ok = engine.toggleRoutine(id, enable)
+                return if (ok) {
+                    ToolResult(true, "Routine $id has been ${if (enable) "ENABLED" else "DISABLED"}.")
+                } else {
+                    ToolResult(false, "Could not find routine with ID: $id")
+                }
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "delete_custom_routine"
+            override val description = "Permanently deletes a custom routine by its ID."
+            override val parameterSchema = mapOf(
+                "type" to "object",
+                "properties" to mapOf(
+                    "id" to mapOf("type" to "string", "description" to "Routine ID to delete")
+                ),
+                "required" to listOf("id")
+            )
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val id = arguments.optString("id", "")
+                if (id.isEmpty()) return ToolResult(false, "Routine id argument is required.")
+
+                val engine = customRoutineEngine ?: CustomRoutineEngine(
+                    context,
+                    com.example.data.preferences.DevAiPreferences(context),
+                    voiceAssistantManager,
+                    flashlightManager,
+                    displayAndBrightnessManager,
+                    audioControlManager,
+                    mediaControlManager
+                )
+                val ok = engine.deleteRoutine(id)
+                return if (ok) {
+                    ToolResult(true, "Successfully deleted routine $id.")
+                } else {
+                    ToolResult(false, "Could not find routine with ID: $id to delete.")
+                }
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "test_trigger_routine"
+            override val description = "Manually triggers and executes a custom routine action by ID for testing."
+            override val parameterSchema = mapOf(
+                "type" to "object",
+                "properties" to mapOf(
+                    "id" to mapOf("type" to "string", "description" to "Routine ID to test execute")
+                ),
+                "required" to listOf("id")
+            )
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val id = arguments.optString("id", "")
+                if (id.isEmpty()) return ToolResult(false, "Routine id argument is required.")
+
+                val engine = customRoutineEngine ?: CustomRoutineEngine(
+                    context,
+                    com.example.data.preferences.DevAiPreferences(context),
+                    voiceAssistantManager,
+                    flashlightManager,
+                    displayAndBrightnessManager,
+                    audioControlManager,
+                    mediaControlManager
+                )
+                val routine = engine.getRoutines().find { it.id == id }
+                    ?: return ToolResult(false, "Routine not found: $id")
+
+                val result = engine.executeRoutine(routine, "Manual Test Trigger")
+                return ToolResult(true, "Executed routine \"${routine.name}\": $result")
+            }
+        })
+    }
+
+    private fun registerMediaControlTools() {
+        register(object : DeviceTool {
+            override val name = "get_current_media_track"
+            override val description = "Inspects the currently active media player, track title, artist, album, playing state, and current media volume."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val manager = mediaControlManager ?: MediaControlManager(context)
+                val summary = manager.getMediaStatusSummary()
+                return ToolResult(true, summary)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "media_play"
+            override val description = "Resumes or starts media playback on the active audio player (Spotify, YouTube Music, Podcasts, etc.)."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val manager = mediaControlManager ?: MediaControlManager(context)
+                val res = manager.mediaPlay()
+                return ToolResult(true, res)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "media_pause"
+            override val description = "Pauses current media playback on the active audio player."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val manager = mediaControlManager ?: MediaControlManager(context)
+                val res = manager.mediaPause()
+                return ToolResult(true, res)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "media_play_pause"
+            override val description = "Toggles playback between play and pause on the active media session."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val manager = mediaControlManager ?: MediaControlManager(context)
+                val res = manager.mediaPlayPause()
+                return ToolResult(true, res)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "media_next_track"
+            override val description = "Skips to the next track in the active media playlist."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val manager = mediaControlManager ?: MediaControlManager(context)
+                val res = manager.mediaNext()
+                return ToolResult(true, res)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "media_previous_track"
+            override val description = "Skips back to the previous track or restarts the current track."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val manager = mediaControlManager ?: MediaControlManager(context)
+                val res = manager.mediaPrevious()
+                return ToolResult(true, res)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "set_media_volume"
+            override val description = "Sets device media/music volume percentage from 0 to 100%."
+            override val parameterSchema = mapOf(
+                "type" to "object",
+                "properties" to mapOf(
+                    "volume_percent" to mapOf("type" to "integer", "description" to "Volume percentage (0 to 100)")
+                ),
+                "required" to listOf("volume_percent")
+            )
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val volume = arguments.optInt("volume_percent", 50)
+                val manager = mediaControlManager ?: MediaControlManager(context)
+                val res = manager.setMediaVolume(volume)
+                return ToolResult(true, res)
+            }
+        })
+
+        register(object : DeviceTool {
+            override val name = "open_media_access_settings"
+            override val description = "Opens Android Notification & Media Session listener access settings so DEV AI can read active song titles and artists."
+            override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
+
+            override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
+                val manager = mediaControlManager ?: MediaControlManager(context)
+                val res = manager.openNotificationListenerSettings()
+                return if (res.isSuccess) {
+                    ToolResult(true, res.getOrDefault("Opened Notification & Media Session Access Settings."))
+                } else {
+                    ToolResult(false, "Failed opening settings: ${res.exceptionOrNull()?.message}")
+                }
             }
         })
     }

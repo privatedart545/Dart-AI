@@ -79,6 +79,17 @@ class DevAiNotificationListenerService : NotificationListenerService() {
                 formattedTime = sdf.format(Date(sbn.postTime))
             )
         }
+
+        fun getActiveMediaControllers(context: Context): List<android.media.session.MediaController> {
+            val service = instance ?: return emptyList()
+            return try {
+                val msm = service.getSystemService(Context.MEDIA_SESSION_SERVICE) as? android.media.session.MediaSessionManager
+                val component = android.content.ComponentName(service, DevAiNotificationListenerService::class.java)
+                msm?.getActiveSessions(component) ?: emptyList()
+            } catch (_: Exception) {
+                emptyList()
+            }
+        }
     }
 
     override fun onListenerConnected() {

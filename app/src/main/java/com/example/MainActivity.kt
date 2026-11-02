@@ -63,6 +63,7 @@ class MainActivity : ComponentActivity() {
             if (viewModel.shakeToWakeEnabled.value) {
                 viewModel.openVoiceModal()
             }
+            viewModel.customRoutineEngine.onTriggerFired("shake_device", "")
         }
 
         setContent {

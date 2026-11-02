@@ -33,7 +33,7 @@ jobs:
       - name: Ensure mock google-services.json if missing
         run: |
           if [ ! -f app/google-services.json ]; then
-            echo '{"project_info":{"project_number":"0","project_id":"dev-ai-mock","storage_bucket":""},"client":[{"client_info":{"mobilesdk_app_id":"1:0:android:0","android_client_info":{"package_name":"com.devlkakkoth.devai"}},"api_key":[{"current_key":"mock"}],"custom_attribute":{}}],"configuration_version":"1"}' > app/google-services.json
+            echo '{"project_info":{"project_number":"0","project_id":"dev-ai-mock","storage_bucket":""},"client":[{"client_info":{"mobilesdk_app_id":"1:0:android:0","android_client_info":{"package_name":"com.aistudio.applet.wfisvp"}},"api_key":[{"current_key":"mock"}],"custom_attribute":{}},{"client_info":{"mobilesdk_app_id":"1:0:android:1","android_client_info":{"package_name":"com.devlkakkoth.devai"}},"api_key":[{"current_key":"mock"}],"custom_attribute":{}}],"configuration_version":"1"}' > app/google-services.json
           fi
 
       - name: Grant execute permission for gradlew if present
