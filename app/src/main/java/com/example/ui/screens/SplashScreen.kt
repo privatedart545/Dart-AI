@@ -138,7 +138,7 @@ fun SplashScreen(
                                     .rotate(0f)
                             )
                             Text(
-                                text = "DEV",
+                                text = "DART",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Black,
                                     letterSpacing = 3.sp,
@@ -152,7 +152,7 @@ fun SplashScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Text(
-                    text = "DEV AI",
+                    text = "Dart AI",
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = 4.sp,

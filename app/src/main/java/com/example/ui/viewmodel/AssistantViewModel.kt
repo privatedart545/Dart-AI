@@ -527,11 +527,11 @@ class AssistantViewModel(application: Application) : AndroidViewModel(applicatio
 
         val sdf = SimpleDateFormat("yyyy-MM-dd_HHmmss", Locale.getDefault())
         val dateDisplay = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
-        val fileName = "DEV_AI_Chat_Export_${sdf.format(Date())}.md"
+        val fileName = "Dart_AI_Chat_Export_${sdf.format(Date())}.md"
 
         val sb = StringBuilder()
-        sb.append("# DEV AI Conversation Export\n")
-        sb.append("**Assistant:** DEV AI\n")
+        sb.append("# Dart AI Conversation Export\n")
+        sb.append("**Assistant:** Dart AI\n")
         sb.append("**Developer:** DEV L KAKKOTH\n")
         sb.append("**Tagline:** Your Personal AI. Your Phone. Your Control.\n")
         sb.append("**Export Date:** $dateDisplay\n\n")
@@ -544,7 +544,7 @@ class AssistantViewModel(application: Application) : AndroidViewModel(applicatio
                     sb.append("${msg.content}\n\n")
                 }
                 "assistant" -> {
-                    sb.append("### 🤖 DEV AI\n")
+                    sb.append("### 🤖 Dart AI\n")
                     sb.append("${msg.content}\n\n")
                 }
                 "tool" -> {
@@ -559,7 +559,7 @@ class AssistantViewModel(application: Application) : AndroidViewModel(applicatio
                 }
             }
         }
-        sb.append("---\n*Exported by DEV AI - Developed by DEV L KAKKOTH*\n")
+        sb.append("---\n*Exported by Dart AI - Developed by DEV L KAKKOTH*\n")
 
         return safFileManager.createFile(fileName, sb.toString())
     }

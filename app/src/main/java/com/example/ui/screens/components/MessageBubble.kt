@@ -109,7 +109,7 @@ fun MessageBubble(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "DEV",
+                        text = "DART",
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontSize = 8.sp,
                             fontWeight = FontWeight.Black,
@@ -148,7 +148,7 @@ fun MessageBubble(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = "DEV AI",
+                                text = "Dart AI",
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = CyanPrimary,

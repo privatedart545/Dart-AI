@@ -284,7 +284,7 @@ class ToolRegistry(
     private fun registerSafFileTools() {
         register(object : DeviceTool {
             override val name = "list_authorized_folders"
-            override val description = "Lists the folders that the user has authorized DEV AI to access via Android Storage Access Framework."
+            override val description = "Lists the folders that the user has authorized Dart AI to access via Android Storage Access Framework."
             override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
 
             override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
@@ -561,7 +561,7 @@ class ToolRegistry(
     private fun registerDeepDocumentTools() {
         register(object : DeviceTool {
             override val name = "read_file_content"
-            override val description = "Reads and retrieves the text content of a document, note, or code file from authorized folders so DEV AI can summarize it or answer questions about it."
+            override val description = "Reads and retrieves the text content of a document, note, or code file from authorized folders so Dart AI can summarize it or answer questions about it."
             override val parameterSchema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
@@ -1307,7 +1307,7 @@ class ToolRegistry(
     private fun registerVaultTools() {
         register(object : DeviceTool {
             override val name = "save_vault_note"
-            override val description = "Saves a private note, sensitive code, or memory into the DEV AI Security Vault."
+            override val description = "Saves a private note, sensitive code, or memory into the Dart AI Security Vault."
             override val parameterSchema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
@@ -1330,7 +1330,7 @@ class ToolRegistry(
 
         register(object : DeviceTool {
             override val name = "get_vault_notes"
-            override val description = "Lists notes stored in the DEV AI Security Vault."
+            override val description = "Lists notes stored in the Dart AI Security Vault."
             override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
 
             override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
@@ -1340,7 +1340,7 @@ class ToolRegistry(
                     ToolResult(true, "Security Vault is currently empty.")
                 } else {
                     val text = notes.joinToString("\n\n") { "🔒 **${it.title}**\n${it.content}" }
-                    ToolResult(true, "DEV AI Vault Notes:\n$text")
+                    ToolResult(true, "Dart AI Vault Notes:\n$text")
                 }
             }
         })
@@ -1440,7 +1440,7 @@ class ToolRegistry(
 
         register(object : DeviceTool {
             override val name = "open_notification_access_settings"
-            override val description = "Opens Android Notification Access Settings so user can enable DEV AI Notification Listener."
+            override val description = "Opens Android Notification Access Settings so user can enable Dart AI Notification Listener."
             override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
 
             override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
@@ -1664,7 +1664,7 @@ class ToolRegistry(
 
         register(object : DeviceTool {
             override val name = "open_write_settings_permission"
-            override val description = "Opens Android permission screen to allow DEV AI to modify system settings (brightness, timeout)."
+            override val description = "Opens Android permission screen to allow Dart AI to modify system settings (brightness, timeout)."
             override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
 
             override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
@@ -1680,7 +1680,7 @@ class ToolRegistry(
     private fun registerAppLockTools() {
         register(object : DeviceTool {
             override val name = "lock_app"
-            override val description = "Locks an app with DEV AI Biometric Security so fingerprint or PIN is required before launching."
+            override val description = "Locks an app with Dart AI Biometric Security so fingerprint or PIN is required before launching."
             override val parameterSchema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
@@ -1700,7 +1700,7 @@ class ToolRegistry(
 
         register(object : DeviceTool {
             override val name = "unlock_app"
-            override val description = "Unlocks an app from DEV AI Biometric Security protection."
+            override val description = "Unlocks an app from Dart AI Biometric Security protection."
             override val parameterSchema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
@@ -1720,14 +1720,14 @@ class ToolRegistry(
 
         register(object : DeviceTool {
             override val name = "list_locked_apps"
-            override val description = "Lists all applications currently locked with DEV AI Biometric Security."
+            override val description = "Lists all applications currently locked with Dart AI Biometric Security."
             override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
 
             override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
                 val manager = appLockManager ?: AppLockManager(context, com.example.data.preferences.DevAiPreferences(context))
                 val locked = manager.getLockedApps()
                 return if (locked.isEmpty()) {
-                    ToolResult(true, "No apps are currently locked by DEV AI App Lock. You can lock apps using 'lock_app'.")
+                    ToolResult(true, "No apps are currently locked by Dart AI App Lock. You can lock apps using 'lock_app'.")
                 } else {
                     val list = locked.joinToString("\n") { "🔒 ${it.appName} (${it.packageName})" }
                     ToolResult(true, "Currently Locked Apps (${locked.size}):\n$list")
@@ -1737,7 +1737,7 @@ class ToolRegistry(
 
         register(object : DeviceTool {
             override val name = "toggle_app_lock"
-            override val description = "Enables or disables the entire DEV AI App Lock security guard."
+            override val description = "Enables or disables the entire Dart AI App Lock security guard."
             override val parameterSchema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
@@ -1750,7 +1750,7 @@ class ToolRegistry(
                 val enable = arguments.optBoolean("enable", true)
                 val manager = appLockManager ?: AppLockManager(context, com.example.data.preferences.DevAiPreferences(context))
                 manager.setAppLockFeatureEnabled(enable)
-                return ToolResult(true, "DEV AI App Lock guard is now ${if (enable) "ACTIVE" else "DISABLED"}.")
+                return ToolResult(true, "Dart AI App Lock guard is now ${if (enable) "ACTIVE" else "DISABLED"}.")
             }
         })
     }
@@ -1763,7 +1763,7 @@ class ToolRegistry(
             override val parameterSchema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
-                    "wake_phrase" to mapOf("type" to "string", "description" to "The target phrase to trigger DEV AI.")
+                    "wake_phrase" to mapOf("type" to "string", "description" to "The target phrase to trigger Dart AI.")
                 ),
                 "required" to listOf("wake_phrase")
             )
@@ -1779,7 +1779,7 @@ class ToolRegistry(
 
         register(object : DeviceTool {
             override val name = "toggle_wake_word"
-            override val description = "Enables or disables continuous hands-free wake word listening for DEV AI."
+            override val description = "Enables or disables continuous hands-free wake word listening for Dart AI."
             override val parameterSchema = mapOf(
                 "type" to "object",
                 "properties" to mapOf(
@@ -1887,7 +1887,7 @@ class ToolRegistry(
                 val created = engine.createRoutine(name, triggerType, triggerParam, actionType, actionParam)
                 return ToolResult(
                     true,
-                    "Created DEV AI Custom Routine \"${created.name}\" (ID: ${created.id})\n" +
+                    "Created Dart AI Custom Routine \"${created.name}\" (ID: ${created.id})\n" +
                             "Trigger: IF ${created.triggerType} [${created.triggerParam}]\n" +
                             "Action: THEN ${created.actionType} \"${created.actionParam}\""
                 )
@@ -1896,7 +1896,7 @@ class ToolRegistry(
 
         register(object : DeviceTool {
             override val name = "list_custom_routines"
-            override val description = "Lists all configured DEV AI custom 'If This Then That' automation routines, trigger status, and stats."
+            override val description = "Lists all configured Dart AI custom 'If This Then That' automation routines, trigger status, and stats."
             override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
 
             override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {
@@ -2108,7 +2108,7 @@ class ToolRegistry(
 
         register(object : DeviceTool {
             override val name = "open_media_access_settings"
-            override val description = "Opens Android Notification & Media Session listener access settings so DEV AI can read active song titles and artists."
+            override val description = "Opens Android Notification & Media Session listener access settings so Dart AI can read active song titles and artists."
             override val parameterSchema = mapOf("type" to "object", "properties" to emptyMap<String, Any>())
 
             override suspend fun execute(context: Context, arguments: JSONObject): ToolResult {

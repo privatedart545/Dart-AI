@@ -45,12 +45,12 @@ class ExampleRobolectricTest {
     fun `verify app name resource`() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val appName = context.getString(R.string.app_name)
-        assertEquals("DEV AI", appName)
+        assertEquals("Dart AI", appName)
     }
 
     @Test
     fun `verify system prompt branding and instructions`() {
-        assertTrue(SystemPrompt.DEFAULT_PROMPT.contains("DEV AI"))
+        assertTrue(SystemPrompt.DEFAULT_PROMPT.contains("Dart AI"))
         assertTrue(SystemPrompt.DEFAULT_PROMPT.contains("DEV L KAKKOTH"))
         assertTrue(SystemPrompt.DEFAULT_PROMPT.contains("Never claim an action was completed unless confirmed by tool execution"))
     }

@@ -12,7 +12,7 @@ interface OpenRouterService {
     @Headers(
         "Content-Type: application/json",
         "HTTP-Referer: https://devlkakkoth.devai",
-        "X-Title: DEV AI Android Assistant"
+        "X-Title: Dart AI Android Assistant"
     )
     suspend fun getChatCompletion(
         @Header("Authorization") authorization: String,

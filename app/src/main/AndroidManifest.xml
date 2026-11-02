@@ -11,7 +11,6 @@
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
@@ -21,9 +20,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS" tools:ignore="ProtectedPermissions" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -75,7 +72,7 @@
         <!-- Notification Listener Service for checking Slack, WhatsApp, and other app messages -->
         <service
             android:name=".platform.DevAiNotificationListenerService"
-            android:label="DEV AI Notification Access"
+            android:label="Dart AI Notification Access"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true">
             <intent-filter>
@@ -83,10 +80,10 @@
             </intent-filter>
         </service>
 
-        <!-- Quick Settings Tile for DEV AI Assistant toggle -->
+        <!-- Quick Settings Tile for Dart AI Assistant toggle -->
         <service
             android:name=".platform.DevAiQuickTileService"
-            android:label="DEV AI Assistant"
+            android:label="Dart AI Assistant"
             android:icon="@drawable/ic_launcher_foreground"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             android:exported="true">

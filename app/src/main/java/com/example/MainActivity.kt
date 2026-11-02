@@ -182,7 +182,7 @@ class MainActivity : ComponentActivity() {
                             },
                             text = {
                                 Text(
-                                    text = "DEV AI needs access to at least one folder (such as Documents or Downloads) to search documents, move files, create notes, and open files.\n\nUnder Android privacy rules, you choose exactly which folder to share.",
+                                    text = "Dart AI needs access to at least one folder (such as Documents or Downloads) to search documents, move files, create notes, and open files.\n\nUnder Android privacy rules, you choose exactly which folder to share.",
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         color = TextSecondary
                                     )

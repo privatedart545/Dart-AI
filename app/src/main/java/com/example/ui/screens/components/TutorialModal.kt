@@ -26,14 +26,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.AltRoute
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material3.Button
@@ -91,99 +96,99 @@ fun TutorialModal(
                 )
             ),
             TutorialStep(
-                title = "Voice & Hands-Free Mode",
+                title = "Battery Health & Degradation",
+                subtitle = "Real-time battery longevity & charge telemetry",
+                icon = Icons.Default.BatteryChargingFull,
+                badge = "BATTERY HEALTH AUDITOR",
+                description = "Track battery degradation score, charge cycle counts, live voltage in mV, instantaneous charging/discharging current in mA, temperature, and intelligent charging threshold recommendations.",
+                bulletPoints = listOf(
+                    "\"How is my battery health and cycle count?\"",
+                    "Degradation rating and remaining capacity health %",
+                    "Overheat alerts and 20%-80% longevity rule guidance"
+                )
+            ),
+            TutorialStep(
+                title = "Custom \"IFTTT\" Routines",
+                subtitle = "Automate device actions with natural language",
+                icon = Icons.Default.AltRoute,
+                badge = "NATURAL AUTOMATION ENGINE",
+                description = "Teach Dart AI custom triggers and actions! Build rules like 'When battery drops below 20%, turn off flashlight and announce low power' or 'When plugged in, set media volume to 80%'.",
+                bulletPoints = listOf(
+                    "Triggers: battery levels, power plugged/unplugged, shake gestures",
+                    "Scheduled delayed automations (\"Turn off flashlight in 10 minutes\")",
+                    "Background broadcast monitoring with active toggle control"
+                )
+            ),
+            TutorialStep(
+                title = "System Media Controller",
+                subtitle = "Full playback control across all music & video apps",
+                icon = Icons.Default.PlayCircle,
+                badge = "GLOBAL MEDIA PLAYBACK",
+                description = "Control Spotify, YouTube Music, Apple Music, and podcast apps hands-free! Dart AI can play, pause, skip, go to previous track, and inspect now-playing song title and artist.",
+                bulletPoints = listOf(
+                    "\"Pause music\", \"Play next song\", \"Resume playback\"",
+                    "\"What song is currently playing?\"",
+                    "Global MediaSessionManager integration with fallback controls"
+                )
+            ),
+            TutorialStep(
+                title = "Biometric Lock & Wake Word",
+                subtitle = "App privacy shield and hands-free activation",
+                icon = Icons.Default.Fingerprint,
+                badge = "SECURITY & WAKE WORDS",
+                description = "Lock sensitive apps with biometric fingerprint or device PIN so nobody can open them without authorization. Plus, set custom wake words like 'Hey Dart' for continuous hands-free listening.",
+                bulletPoints = listOf(
+                    "\"Lock WhatsApp and Gallery with App Lock\"",
+                    "Set custom wake words (\"Hey Dart\", \"Dart AI\", \"Assistant\")",
+                    "BiometricPrompt + Keyguard PIN fallback protection"
+                )
+            ),
+            TutorialStep(
+                title = "Digital Wellbeing & Smart DND",
+                subtitle = "App screen time audits and audio profile toggles",
+                icon = Icons.Default.NotificationsActive,
+                badge = "FOCUS & WELLBEING",
+                description = "Audit your daily screen time across apps, activate Smart Do Not Disturb during focus hours, toggle between Silent/Vibrate/Normal sound modes, and inspect incoming notifications (e.g., Slack).",
+                bulletPoints = listOf(
+                    "\"Audit my screen time today\"",
+                    "\"Set sound profile to silent / vibrate\"",
+                    "\"Check my recent Slack notifications\""
+                )
+            ),
+            TutorialStep(
+                title = "Alarm & Calendar Reminders",
+                subtitle = "Turn on existing alarms, change times & add events",
+                icon = Icons.Default.Alarm,
+                badge = "PRODUCTIVITY SCHEDULER",
+                description = "Dart AI doesn't just create new alarms—it can turn on existing alarms, adjust times, inspect upcoming schedules, and directly insert calendar events without opening the calendar app.",
+                bulletPoints = listOf(
+                    "\"Turn on my 7:00 AM alarm\"",
+                    "\"Change my alarm to 7:30 AM\"",
+                    "\"Schedule calendar meeting tomorrow at 3 PM\""
+                )
+            ),
+            TutorialStep(
+                title = "File Management & Name Dialing",
+                subtitle = "Move files, create notes, and call contacts by name",
+                icon = Icons.Default.Description,
+                badge = "SMART FILE & CONTACT TOOLS",
+                description = "Organize folders by moving files, create files inside subdirectories, and dial contacts by speaking their name (e.g. 'Call John') rather than remembering phone numbers.",
+                bulletPoints = listOf(
+                    "\"Move invoice.pdf from Downloads to Accounting\"",
+                    "\"Create meeting_notes.md in Projects folder\"",
+                    "\"Call Mom\" or \"Call Sarah on phone\""
+                )
+            ),
+            TutorialStep(
+                title = "Voice Assistant & Settings Hub",
                 subtitle = "Speak naturally with instant audio playback",
                 icon = Icons.Default.Mic,
-                badge = "SPEECH & TTS",
-                description = "Tap the glowing microphone or shake your phone to speak. Dart AI transcribes your voice in real time, executes device tools, and speaks answers back with customizable pitch and speech rate.",
+                badge = "SPEECH & 1-TAP SHORTCUTS",
+                description = "Tap the glowing microphone or shake your phone to speak. Choose from custom voices (Male, Female, Fast, Deep), adjust speech pitch/rate, and launch over 20 Android settings instantly.",
                 bulletPoints = listOf(
                     "Hands-free voice loop with auto-speak responses",
-                    "Quick-switch button between Voice and Keyboard typing",
-                    "Adjustable speech rate and pitch in Settings"
-                )
-            ),
-            TutorialStep(
-                title = "System Settings Hub",
-                subtitle = "Instant 1-tap shortcuts to every phone setting",
-                icon = Icons.Default.Settings,
-                badge = "SYSTEM CONTROL",
-                description = "Never dig through convoluted menus again! Dart AI gives you a unified Settings Hub to launch over 20 Android settings in a fraction of a second.",
-                bulletPoints = listOf(
-                    "Wi-Fi, Bluetooth, Display, and Sound settings",
-                    "Battery Saver, Storage, and App permissions",
-                    "Developer Options, Biometrics, and Privacy controls"
-                )
-            ),
-            TutorialStep(
-                title = "Hardware & Telemetry",
-                subtitle = "Flashlight, Volume, Battery & Storage",
-                icon = Icons.Default.PhoneAndroid,
-                badge = "DEVICE TELEMETRY",
-                description = "Directly operate camera flashlight, adjust volume across media/alarm streams, inspect live battery temperature and percentage, and query internal storage and RAM usage.",
-                bulletPoints = listOf(
-                    "\"Turn on flashlight\" / \"Set media volume to 80%\"",
-                    "\"Check battery temperature and health\"",
-                    "\"How much free storage and RAM is left?\""
-                )
-            ),
-            TutorialStep(
-                title = "Vision & SAF File Intelligence",
-                subtitle = "Search, read, and create files on your phone",
-                icon = Icons.Default.Description,
-                badge = "STORAGE ACCESS FRAMEWORK",
-                description = "Authorize folders using Android's privacy-first Storage Access Framework. Dart AI can search inside documents, create text notes and source code files, and analyze images from Camera or Gallery.",
-                bulletPoints = listOf(
-                    "\"Create a file named todo.txt with project tasks\"",
-                    "\"Search inside documents for invoice keywords\"",
-                    "Pick photos and camera captures for visual inspection"
-                )
-            ),
-            TutorialStep(
-                title = "Offline Emergency Survival Mode",
-                subtitle = "Core phone actions work without internet",
-                icon = Icons.Default.AutoAwesome,
-                badge = "EMERGENCY READY",
-                description = "Stranded without internet or mobile data? Dart AI automatically detects local device intents and operates your flashlight, volume, battery telemetry, alarms, timers, and math calculations completely offline!",
-                bulletPoints = listOf(
-                    "Instant local hardware execution without API key or network",
-                    "Emergency flashlight toggle and battery status checks",
-                    "Offline countdown timers and alarms"
-                )
-            ),
-            TutorialStep(
-                title = "Live Web Search & Article Reader",
-                subtitle = "Live summaries from the web",
-                icon = Icons.Default.Language,
-                badge = "LIVE WEB KNOWLEDGE",
-                description = "Ask Dart AI to look up live facts, articles, and topic summaries. It queries real-time web services and synthesizes key takeaways directly in your conversation.",
-                bulletPoints = listOf(
-                    "\"Search the web for latest quantum computing breakthroughs\"",
-                    "\"Who won the latest chess championship?\"",
-                    "Clean summarized web answers with sources"
-                )
-            ),
-            TutorialStep(
-                title = "Math Sandbox & Formula Rendering",
-                subtitle = "High-precision calculations and LaTeX formatting",
-                icon = Icons.Default.Calculate,
-                badge = "CALCULATION ENGINE",
-                description = "Solve arithmetic, powers, square roots, and trigonometric equations in real time with beautiful mathematical LaTeX formatting and syntax-highlighted code blocks with 1-tap copy.",
-                bulletPoints = listOf(
-                    "Evaluate complex formulas like sqrt(144) + 2^5",
-                    "LaTeX formula rendering for physics and calculus",
-                    "Syntax-highlighted code blocks with copy-to-clipboard"
-                )
-            ),
-            TutorialStep(
-                title = "Security Vault & Contacts Dialer",
-                subtitle = "Private encrypted notes and fast phone dialing",
-                icon = Icons.Default.Lock,
-                badge = "SECURITY & COMMUNICATIONS",
-                description = "Store sensitive notes, thoughts, and codes in the private Dart AI Vault. Plus, ask Dart AI to dial phone numbers or launch device contacts in one tap.",
-                bulletPoints = listOf(
-                    "\"Save private note: Server backup keys in vault\"",
-                    "\"Dial 555-0199\" or \"Open contacts\"",
-                    "Daily executive briefing with battery, storage, and quotes"
+                    "Custom voice selection and speed slider in Settings",
+                    "1-tap System Settings Hub for Wi-Fi, Bluetooth, Power Saver"
                 )
             ),
             TutorialStep(

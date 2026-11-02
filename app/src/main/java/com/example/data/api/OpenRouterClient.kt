@@ -40,7 +40,7 @@ class OpenRouterClient {
         }
         try {
             val testMessage = listOf(
-                ApiMessage(role = "user", content = "Reply with 'DEV AI Online' only.")
+                ApiMessage(role = "user", content = "Reply with 'Dart AI Online' only.")
             )
             val request = ChatCompletionRequest(
                 model = model.ifBlank { "nvidia/nemotron-3-ultra-550b-a55b" },
@@ -77,7 +77,7 @@ class OpenRouterClient {
     ): Result<ChatCompletionResponse> = withContext(Dispatchers.IO) {
         if (apiKey.isBlank()) {
             return@withContext Result.failure(
-                IllegalStateException("Please configure your OpenRouter API Key in DEV AI Settings first.")
+                IllegalStateException("Please configure your OpenRouter API Key in Dart AI Settings first.")
             )
         }
         try {

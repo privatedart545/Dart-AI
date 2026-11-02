@@ -29,7 +29,7 @@ class ToolExecutor(
                 toolName = functionName,
                 argumentsJson = rawArgs,
                 isSuccess = false,
-                resultText = "Error: Tool '$functionName' is not recognized by DEV AI Tool Registry."
+                resultText = "Error: Tool '$functionName' is not recognized by Dart AI Tool Registry."
             )
         }
 
