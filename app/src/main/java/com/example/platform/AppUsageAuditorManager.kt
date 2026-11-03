@@ -58,7 +58,7 @@ class AppUsageAuditorManager(private val context: Context) {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
-            Result.success("Opened Android Usage Access Settings. Please enable access for DEV AI to unlock real-time App Usage and Digital Wellbeing auditing.")
+            Result.success("Opened Android Usage Access Settings. Please enable access for Dart AI to unlock real-time App Usage and Digital Wellbeing auditing.")
         } catch (e: Exception) {
             Result.failure(Exception("Unable to open Usage Settings: ${e.localizedMessage}"))
         }
@@ -71,7 +71,7 @@ class AppUsageAuditorManager(private val context: Context) {
                 totalScreenTimeMillis = 0L,
                 formattedTotalScreenTime = "Permission required",
                 topApps = emptyList(),
-                auditSummary = "Usage Access permission is not yet granted. DEV AI needs this permission to inspect screen time and app usage stats.",
+                auditSummary = "Usage Access permission is not yet granted. Dart AI needs this permission to inspect screen time and app usage stats.",
                 recommendation = "Call 'open_usage_access_settings' to grant permission in Android Settings."
             )
         }
@@ -130,7 +130,7 @@ class AppUsageAuditorManager(private val context: Context) {
             hours >= 6 -> {
                 Pair(
                     "⚠️ High Screen Time Alert: You have spent $totalFormatted on your phone today.",
-                    "Your usage is notably above average. Consider enabling DEV AI Focus Mode, activating Smart DND, or setting app timers for your top distracting apps."
+                    "Your usage is notably above average. Consider enabling Dart AI Focus Mode, activating Smart DND, or setting app timers for your top distracting apps."
                 )
             }
             hours >= 3 -> {

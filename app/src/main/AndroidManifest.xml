@@ -69,17 +69,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Notification Listener Service for checking Slack, WhatsApp, and other app messages -->
-        <service
-            android:name=".platform.DevAiNotificationListenerService"
-            android:label="Dart AI Notification Access"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
-        </service>
-
         <!-- Quick Settings Tile for Dart AI Assistant toggle -->
         <service
             android:name=".platform.DevAiQuickTileService"

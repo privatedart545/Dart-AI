@@ -94,7 +94,7 @@ class MediaControlManager(private val context: Context) {
             val durSec = track.durationMs / 1000
             val timeStr = if (durSec > 0) " (${posSec / 60}:${String.format("%02d", posSec % 60)} / ${durSec / 60}:${String.format("%02d", durSec % 60)})" else ""
 
-            return """### 🎵 DEV AI System Media Controller
+            return """### 🎵 Dart AI System Media Controller
 - **Player App**: **${track.appName}** (`${track.packageName}`)
 - **Title**: **${track.title}**
 - **Artist**: **${track.artist}**
@@ -105,9 +105,9 @@ class MediaControlManager(private val context: Context) {
 
         val isMusicActive = audioManager.isMusicActive
         return if (isMusicActive) {
-            "Audio is currently active on the device in background (Media volume: ${getMediaVolumePercent()}%). DEV AI can play, pause, skip, or adjust volume."
+            "Audio is currently active on the device in background (Media volume: ${getMediaVolumePercent()}%). Dart AI can play, pause, skip, or adjust volume."
         } else {
-            "No active media playback session detected on the device. (Media volume: ${getMediaVolumePercent()}%). You can ask DEV AI to play music or launch Spotify/YouTube."
+            "No active media playback session detected on the device. (Media volume: ${getMediaVolumePercent()}%). You can ask Dart AI to play music or launch Spotify/YouTube."
         }
     }
 

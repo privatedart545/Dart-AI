@@ -29,7 +29,7 @@ class NotificationReaderManager(private val context: Context) {
         if (!isNotificationAccessGranted()) {
             return Result.failure(
                 Exception(
-                    "Notification access is not granted yet. Please allow DEV AI in Android Notification Access settings. You can ask me 'Open notification settings' to grant permission."
+                    "Notification access is not granted yet. Please allow Dart AI in Android Notification Access settings. You can ask me 'Open notification settings' to grant permission."
                 )
             )
         }
